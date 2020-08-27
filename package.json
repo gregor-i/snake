@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "http-server": "^0.12.3",
+    "image-clipper": "^0.4.4",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5"
   },
@@ -10,8 +11,10 @@
     "server": "http-server -c-1 build",
     "build": "run-p build-*",
     "build-html": "cp src/main/html/* build/.",
+    "build-img": "cp src/main/img/* build/.",
     "watch": "run-p watch-*",
-    "watch-html": "nodemon --exec 'npm run build-html' --watch frontend/src/main/html -e html"
+    "watch-html": "nodemon --exec 'npm run build-html' --watch src/main/html -e html",
+    "watch-img": "nodemon --exec 'npm run build-img' --watch src/main/html -e '*'"
   },
-  "dependencies": {  }
+  "dependencies": {}
 }
