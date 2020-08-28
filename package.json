@@ -12,9 +12,11 @@
     "build": "run-p build-*",
     "build-html": "cp src/main/html/* build/.",
     "build-img": "cp src/main/img/* build/.",
+    "build-js": "sbt compile",
     "watch": "run-p watch-*",
     "watch-html": "nodemon --exec 'npm run build-html' --watch src/main/html -e html",
-    "watch-img": "nodemon --exec 'npm run build-img' --watch src/main/html -e '*'"
+    "watch-img": "nodemon --exec 'npm run build-img' --watch src/main/html -e '*'",
+    "watch-js": "sbt ~compile"
   },
   "dependencies": {}
 }

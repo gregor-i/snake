@@ -36,7 +36,7 @@ object Snake extends IndigoGame[BootData, StartUpData, GameModel, ViewModel] {
     Startup.Success(StartUpData())
 
   def initialModel(startupData: StartUpData): GameModel =
-    GameModel(snakeSceneModel = SnakeSceneModel())
+    GameModel(snakeSceneModel = SnakeSceneModel.initial)
 
   def initialViewModel(startupData: StartUpData, model: GameModel): ViewModel =
     ViewModel()

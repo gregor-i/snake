@@ -4,18 +4,39 @@ import indigo.scenes.{Lens, Scene, SceneName}
 import indigo.shared.time.Seconds
 import indigo._
 
+import scala.collection.immutable.Queue
+import scala.util.Random
+
+import scala.util.chaining._
+
 case class SnakeSceneModel(
-    snakeHead: Point = Point(Settings.width / 2, Settings.height / 2),
-    snakeDirection: Direction = Up,
-    lastUpdated: Seconds = Seconds.zero,
-    tickDelay: Seconds = Seconds(1d)
+    snakeHead: Point,
+    snakeDirection: Direction,
+    snakeBody: List[Point],
+    snakeBodyLength: Int,
+    target: Point,
+    gameOver: Boolean,
+    lastUpdated: Seconds,
+    tickDelay: Seconds
 )
 
-sealed trait Direction
-case object Up    extends Direction
-case object Right extends Direction
-case object Down  extends Direction
-case object Left  extends Direction
+object SnakeSceneModel {
+  def initial = {
+    val startPoint     = Point(GameMap.width / 2, GameMap.height / 2)
+    val startDirection = Up
+    val startLength    = 2
+    SnakeSceneModel(
+      snakeHead = startPoint,
+      snakeDirection = startDirection,
+      target = Point(GameMap.width / 3, GameMap.height / 2),
+      snakeBody = List.tabulate(startLength)(i => startPoint - (startDirection.delta * (i + 1))),
+      snakeBodyLength = startLength,
+      gameOver = false,
+      lastUpdated = Seconds.zero,
+      tickDelay = Seconds(0.2d)
+    )
+  }
+}
 
 case class SnakeSceneViewModel()
 
@@ -34,40 +55,81 @@ object SnakeScene extends Scene[StartUpData, GameModel, ViewModel] {
   val subSystems: Set[SubSystem]                     = Set.empty
 
   def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
+    case _ if model.gameOver => Outcome.pure(model)
     case e: KeyboardEvent if e.keyCode == Keys.UP_ARROW =>
-      Outcome(model.copy(snakeDirection = Up))
+      model.pipe(turnHead(Up)).pipe(Outcome.pure)
     case e: KeyboardEvent if e.keyCode == Keys.DOWN_ARROW =>
-      Outcome(model.copy(snakeDirection = Down))
+      model.pipe(turnHead(Down)).pipe(Outcome.pure)
     case e: KeyboardEvent if e.keyCode == Keys.LEFT_ARROW =>
-      Outcome(model.copy(snakeDirection = Left))
+      model.pipe(turnHead(Left)).pipe(Outcome.pure)
     case e: KeyboardEvent if e.keyCode == Keys.RIGHT_ARROW =>
-      Outcome(model.copy(snakeDirection = Right))
+      model.pipe(turnHead(Right)).pipe(Outcome.pure)
     case FrameTick if context.gameTime.running > model.lastUpdated + model.tickDelay =>
-      val newPos = model.snakeDirection match {
-        case Up    => model.snakeHead + Point(0, -1)
-        case Down  => model.snakeHead + Point(0, +1)
-        case Right => model.snakeHead + Point(+1, 0)
-        case Left  => model.snakeHead + Point(-1, 0)
-      }
-
-      Outcome(model.copy(snakeHead = newPos, lastUpdated = context.gameTime.running))
+      model
+        .pipe(moveAhead)
+        .pipe(handleTarget(context))
+        .pipe(handleWalls)
+        .pipe(handleBody)
+        .pipe(_.copy(lastUpdated = context.gameTime.running))
+        .pipe(Outcome.pure)
 
     case _ => Outcome(model)
   }
+
+  def turnHead(newDirection: Direction)(model: SceneModel): SceneModel =
+    model.copy(
+      snakeDirection = newDirection
+    )
+
+  def moveAhead(model: SceneModel): SceneModel =
+    model.copy(
+      snakeHead = model.snakeDirection.delta + model.snakeHead,
+      snakeBody = model.snakeBody.prepended(model.snakeHead).take(model.snakeBodyLength)
+    )
+
+  def handleTarget(context: FrameContext[_])(model: SceneModel): SceneModel =
+    if (model.snakeHead == model.target) {
+      // todo: this code does not terminate, if all tiles are filled with snakebody
+      val newTarget = LazyList
+        .continually {
+          Point(context.dice.roll(GameMap.width - 2), context.dice.roll(GameMap.height - 2))
+        }
+        .filter(!model.snakeBody.contains(_))
+        .filter(_ != model.snakeHead)
+        .head
+      model.copy(
+        target = newTarget,
+        snakeBodyLength = model.snakeBodyLength + 1
+      )
+    } else {
+      model
+    }
+
+  def handleWalls(model: SceneModel): SceneModel =
+    if (GameMap.wallPositions.contains(model.snakeHead)) {
+      model.copy(gameOver = true)
+    } else {
+      model
+    }
+
+  def handleBody(model: SceneModel): SceneModel =
+    if (model.snakeBody.contains(model.snakeHead)) {
+      model.copy(gameOver = true)
+    } else {
+      model
+    }
 
   def updateViewModel(
       context: FrameContext[StartUpData],
       model: SceneModel,
       viewModel: SceneViewModel
   ): GlobalEvent => Outcome[SceneViewModel] =
-    event => Outcome.pure(SnakeSceneViewModel())
+    _ => Outcome.pure(SnakeSceneViewModel())
 
   def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment =
     SceneUpdateFragment.empty
       .addGameLayerNodes(
-        Arena.wallPositions.map(p => Assets.wall.moveBy(p * Settings.textureSize)): _*
+        GameMap.graphics(model): _*
       )
-      .addGameLayerNodes(
-        Assets.head(model.snakeDirection).moveBy(model.snakeHead * Settings.textureSize)
-      )
+
 }
