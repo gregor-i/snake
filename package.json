@@ -9,7 +9,7 @@
     "develop": "npm run mkdir && run-p server watch",
     "mkdir": "mkdir -p build",
     "server": "http-server -c-1 build",
-    "build": "run-p build-*",
+    "build": "npm run mkdir && run-p build-*",
     "build-static": "cp src/main/static/* build/.",
     "build-js": "sbt 'set scalaJSStage := org.scalajs.sbtplugin.Stage.FullOpt; compile'",
     "watch": "run-p watch-*",
