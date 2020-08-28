@@ -1,70 +1,77 @@
 package snake
 
-import indigo.scenes.{Lens, Scene, SceneName}
+import indigo.scenes.{Lens, Scene, SceneEvent, SceneName}
 import indigo.shared.time.Seconds
 import indigo._
-
-import scala.collection.immutable.Queue
-import scala.util.Random
+import indigo.shared.constants.Keys
+import snake.SnakeScene.SceneModel
 
 import scala.util.chaining._
 
-case class SnakeSceneModel(
+case class GameSceneModel(
     snakeHead: Point,
     snakeDirection: Direction,
     snakeBody: List[Point],
     snakeBodyLength: Int,
     target: Point,
+    score: Int,
     gameOver: Boolean,
-    lastUpdated: Seconds,
-    tickDelay: Seconds
+    lastUpdated: Seconds
 )
 
-object SnakeSceneModel {
+object GameSceneModel {
   def initial = {
     val startPoint     = Point(GameMap.width / 2, GameMap.height / 2)
     val startDirection = Up
     val startLength    = 2
-    SnakeSceneModel(
+    GameSceneModel(
       snakeHead = startPoint,
       snakeDirection = startDirection,
       target = Point(GameMap.width / 3, GameMap.height / 2),
       snakeBody = List.tabulate(startLength)(i => startPoint - (startDirection.delta * (i + 1))),
       snakeBodyLength = startLength,
+      score = 0,
       gameOver = false,
-      lastUpdated = Seconds.zero,
-      tickDelay = Seconds(0.2d)
+      lastUpdated = Seconds.zero
     )
   }
-}
 
-case class SnakeSceneViewModel()
-
-object SnakeScene extends Scene[StartUpData, GameModel, ViewModel] {
-  type SceneModel     = SnakeSceneModel
-  type SceneViewModel = SnakeSceneViewModel
-
-  val name: SceneName = SceneName("Snake")
-  val modelLens: Lens[GameModel, SceneModel] =
-    Lens[GameModel, SceneModel](
+  val modelLens: Lens[GlobalModel, SceneModel] =
+    Lens[GlobalModel, SceneModel](
       getter = _.snakeSceneModel,
       setter = (gameModel, sceneModel) => gameModel.copy(snakeSceneModel = sceneModel)
     )
-  val viewModelLens: Lens[ViewModel, SceneViewModel] = Lens(getter = _ => SnakeSceneViewModel(), setter = (_, _) => ViewModel())
+}
+
+object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
+  type SceneModel     = GameSceneModel
+  type SceneViewModel = Unit
+
+  val name: SceneName                                = SceneName("game")
+  val modelLens: Lens[GlobalModel, SceneModel]       = GameSceneModel.modelLens
+  val viewModelLens: Lens[ViewModel, SceneViewModel] = Lens.fixed(())
   val eventFilters: EventFilters                     = EventFilters.Default
   val subSystems: Set[SubSystem]                     = Set.empty
 
-  def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
-    case _ if model.gameOver => Outcome.pure(model)
-    case e: KeyboardEvent if e.keyCode == Keys.UP_ARROW =>
-      model.pipe(turnHead(Up)).pipe(Outcome.pure)
-    case e: KeyboardEvent if e.keyCode == Keys.DOWN_ARROW =>
-      model.pipe(turnHead(Down)).pipe(Outcome.pure)
-    case e: KeyboardEvent if e.keyCode == Keys.LEFT_ARROW =>
-      model.pipe(turnHead(Left)).pipe(Outcome.pure)
-    case e: KeyboardEvent if e.keyCode == Keys.RIGHT_ARROW =>
-      model.pipe(turnHead(Right)).pipe(Outcome.pure)
-    case FrameTick if context.gameTime.running > model.lastUpdated + model.tickDelay =>
+  def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] =
+    if (model.gameOver) updateModelGameOver(context, model)
+    else updateModelGameRunning(context, model)
+
+  def updateModelGameOver(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
+    case FrameTick if context.gameTime.running > model.lastUpdated + Settings.delayGameOver =>
+      Outcome
+        .pure(model)
+        .addGlobalEvents(SceneEvent.JumpTo(GameOverScene.name))
+    case _ => Outcome.pure(model)
+  }
+
+  def updateModelGameRunning(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
+    case KeyboardEvent.KeyDown(Keys.UP_ARROW)    => model.pipe(turnHead(Up)).pipe(Outcome.pure)
+    case KeyboardEvent.KeyDown(Keys.DOWN_ARROW)  => model.pipe(turnHead(Down)).pipe(Outcome.pure)
+    case KeyboardEvent.KeyDown(Keys.LEFT_ARROW)  => model.pipe(turnHead(Left)).pipe(Outcome.pure)
+    case KeyboardEvent.KeyDown(Keys.RIGHT_ARROW) => model.pipe(turnHead(Right)).pipe(Outcome.pure)
+
+    case FrameTick if context.gameTime.running > model.lastUpdated + Settings.tickDelay =>
       model
         .pipe(moveAhead)
         .pipe(handleTarget(context))
@@ -99,7 +106,8 @@ object SnakeScene extends Scene[StartUpData, GameModel, ViewModel] {
         .head
       model.copy(
         target = newTarget,
-        snakeBodyLength = model.snakeBodyLength + 1
+        snakeBodyLength = model.snakeBodyLength + 1,
+        score = model.score + Settings.scorePerTarget
       )
     } else {
       model
@@ -124,12 +132,15 @@ object SnakeScene extends Scene[StartUpData, GameModel, ViewModel] {
       model: SceneModel,
       viewModel: SceneViewModel
   ): GlobalEvent => Outcome[SceneViewModel] =
-    _ => Outcome.pure(SnakeSceneViewModel())
+    _ => Outcome.pure(())
 
   def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment =
     SceneUpdateFragment.empty
       .addGameLayerNodes(
         GameMap.graphics(model): _*
+      )
+      .addGameLayerNodes(
+        Text(s"Score: ${model.score}", Settings.viewportWidth, 0, 0, Assets.fontKey).alignRight
       )
 
 }

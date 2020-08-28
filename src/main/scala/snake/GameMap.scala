@@ -14,7 +14,7 @@ object GameMap {
     top ++ bottom ++ left ++ right
   }
 
-  def graphics(model: SnakeSceneModel): Seq[Graphic] = {
+  def graphics(model: GameSceneModel): Seq[Graphic] = {
     val walls = wallPositions.map(p => Assets.wall.moveBy(p * Settings.textureSize))
 
     val snakeHead = Assets.head(model.snakeDirection).moveBy(model.snakeHead * Settings.textureSize)

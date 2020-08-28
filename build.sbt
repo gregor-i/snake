@@ -1,3 +1,5 @@
+import org.scalajs.sbtplugin.Stage
+
 import scala.sys.process._
 
 scalaVersion in ThisBuild  := "2.13.3"
@@ -13,12 +15,17 @@ val root = project.in(file("."))
     )
   )
 
-compile in root := {
+compile in root := Def.taskDyn{
+  val stage = (root / Compile / scalaJSStage).value
   val ret           = (root / Compile / compile).value
-  val buildFrontend = (root / Compile / fastOptJS).value.data
-  val outputFile    = "build/snake.js"
-  streams.value.log.info("integrating frontend (fastOptJS)")
-  val npmLog = Seq("cp", buildFrontend.toString, outputFile).!!
-  streams.value.log.info(npmLog)
-  ret
-}
+  val buildFrontendTask = stage match {
+    case Stage.FullOpt => (root / Compile / fullOptJS)
+    case Stage.FastOpt => (root / Compile / fastOptJS)
+  }
+  streams.value.log.info(s"integrating frontend (${stage})")
+  buildFrontendTask.map{buildFrontend =>
+    val outputFile    = "build/snake.js"
+    Seq("cp", buildFrontend.data.toString, outputFile).!!
+    ret
+  }
+}.value

@@ -3,15 +3,15 @@ package snake
 import indigo.scenes.{Scene, SceneName}
 import indigo._
 
-case class GameModel(
-    snakeSceneModel: SnakeSceneModel
+case class GlobalModel(
+    snakeSceneModel: GameSceneModel
 )
 
 case class BootData()
 case class StartUpData()
 case class ViewModel()
 
-object Snake extends IndigoGame[BootData, StartUpData, GameModel, ViewModel] {
+object Snake extends IndigoGame[BootData, StartUpData, GlobalModel, ViewModel] {
   private val config = GameConfig(
     viewport = GameViewport(Settings.viewportWidth, Settings.viewportHeight),
     frameRate = 30,
@@ -25,20 +25,21 @@ object Snake extends IndigoGame[BootData, StartUpData, GameModel, ViewModel] {
       config,
       BootData()
     ).withAssets(Assets.assets: _*)
+      .withFonts(Assets.fontInfo)
 
-  def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, GameModel, ViewModel]] =
-    NonEmptyList(SnakeScene)
+  def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, GlobalModel, ViewModel]] =
+    NonEmptyList(GreetingScene, SnakeScene, GameOverScene)
 
   def initialScene(bootData: BootData): Option[SceneName] =
-    Some(SceneName("Snake"))
+    Some(GreetingScene.name)
 
   def setup(bootData: BootData, assetCollection: AssetCollection, dice: Dice): Startup[StartupErrors, StartUpData] =
     Startup.Success(StartUpData())
 
-  def initialModel(startupData: StartUpData): GameModel =
-    GameModel(snakeSceneModel = SnakeSceneModel.initial)
+  def initialModel(startupData: StartUpData): GlobalModel =
+    GlobalModel(snakeSceneModel = GameSceneModel.initial)
 
-  def initialViewModel(startupData: StartUpData, model: GameModel): ViewModel =
+  def initialViewModel(startupData: StartUpData, model: GlobalModel): ViewModel =
     ViewModel()
 
 }
