@@ -4,7 +4,7 @@ import indigo.scenes.{Scene, SceneName}
 import indigo._
 
 case class GlobalModel(
-    snakeSceneModel: GameSceneModel
+    snakeSceneModel: SnakeModel
 )
 
 case class BootData()
@@ -28,7 +28,7 @@ object Snake extends IndigoGame[BootData, StartUpData, GlobalModel, ViewModel] {
       .withFonts(Assets.fontInfo)
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, GlobalModel, ViewModel]] =
-    NonEmptyList(GreetingScene, SnakeScene, GameOverScene)
+    NonEmptyList(GreetingScene, GameScene, GameOverScene)
 
   def initialScene(bootData: BootData): Option[SceneName] =
     Some(GreetingScene.name)
@@ -37,7 +37,7 @@ object Snake extends IndigoGame[BootData, StartUpData, GlobalModel, ViewModel] {
     Startup.Success(StartUpData())
 
   def initialModel(startupData: StartUpData): GlobalModel =
-    GlobalModel(snakeSceneModel = GameSceneModel.initial)
+    GlobalModel(snakeSceneModel = SnakeModel.initial)
 
   def initialViewModel(startupData: StartUpData, model: GlobalModel): ViewModel =
     ViewModel()

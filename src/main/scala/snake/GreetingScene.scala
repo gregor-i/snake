@@ -8,11 +8,11 @@ import indigo.shared.{FrameContext, Outcome}
 import indigo._
 
 object GreetingScene extends Scene[StartUpData, GlobalModel, ViewModel] {
-  type SceneModel     = GameSceneModel
+  type SceneModel     = SnakeModel
   type SceneViewModel = Unit
 
   val name: SceneName                                = SceneName("greeting")
-  val modelLens: Lens[GlobalModel, SceneModel]       = GameSceneModel.modelLens
+  val modelLens: Lens[GlobalModel, SceneModel]       = SnakeModel.modelLens
   val viewModelLens: Lens[ViewModel, SceneViewModel] = Lens.fixed(())
   val eventFilters: EventFilters                     = EventFilters.Default
   val subSystems: Set[SubSystem]                     = Set.empty
@@ -21,7 +21,7 @@ object GreetingScene extends Scene[StartUpData, GlobalModel, ViewModel] {
     case KeyboardEvent.KeyDown(Keys.ENTER) =>
       Outcome
         .pure(model)
-        .addGlobalEvents(SceneEvent.JumpTo(SnakeScene.name))
+        .addGlobalEvents(SceneEvent.JumpTo(GameScene.name))
     case _ => Outcome.pure(model)
   }
 
@@ -32,14 +32,14 @@ object GreetingScene extends Scene[StartUpData, GlobalModel, ViewModel] {
   ): GlobalEvent => Outcome[SceneViewModel] =
     _ => Outcome.pure(viewModel)
 
-  def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment =
+  def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment = {
+    val centerX = Settings.viewportWidth / 2
     SceneUpdateFragment.empty
-      .addUiLayerNodes(drawControlsText(Settings.viewportWidth / 2, Settings.viewportHeight / 2))
-
-  def drawControlsText(centerX: Int, centerY: Int): List[SceneGraphNode] =
-    List(
-      Text("SNAKE", centerX, centerY - 50, 1, Assets.fontKey).alignCenter,
-      Text("controls:\nuse the arrow keys\nto change direction", 24, centerY - 15, 1, Assets.fontKey).alignLeft,
-      Text("press Enter to start", centerX, centerY + 40, 1, Assets.fontKey).alignCenter
-    )
+      .addUiLayerNodes(GameMap.background(model))
+      .addUiLayerNodes(
+        Text("SNAKE", centerX, Settings.textureSize * 2 + 6, 1, Assets.fontKey).alignCenter,
+        Text("controls:\nuse the arrow keys\nto change direction", centerX, Settings.textureSize * 5 + 8, 1, Assets.fontKey).alignCenter,
+        Text("press Enter to start", centerX, Settings.textureSize * (GameMap.height - 2) + 6, 1, Assets.fontKey).alignCenter
+      )
+  }
 }

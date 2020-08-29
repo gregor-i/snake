@@ -1,69 +1,23 @@
 package snake
 
-import indigo.scenes.{Lens, Scene, SceneEvent, SceneName}
-import indigo.shared.time.Seconds
 import indigo._
+import indigo.scenes.{Lens, Scene, SceneEvent, SceneName}
 import indigo.shared.constants.Keys
-import snake.SnakeScene.SceneModel
 
 import scala.util.chaining._
 
-case class GameSceneModel(
-    snakeHead: Point,
-    snakeDirection: Direction,
-    snakeBody: List[Point],
-    snakeBodyLength: Int,
-    target: Point,
-    score: Int,
-    gameOver: Boolean,
-    lastUpdated: Seconds
-)
-
-object GameSceneModel {
-  def initial = {
-    val startPoint     = Point(GameMap.width / 2, GameMap.height / 2)
-    val startDirection = Up
-    val startLength    = 2
-    GameSceneModel(
-      snakeHead = startPoint,
-      snakeDirection = startDirection,
-      target = Point(GameMap.width / 3, GameMap.height / 2),
-      snakeBody = List.tabulate(startLength)(i => startPoint - (startDirection.delta * (i + 1))),
-      snakeBodyLength = startLength,
-      score = 0,
-      gameOver = false,
-      lastUpdated = Seconds.zero
-    )
-  }
-
-  val modelLens: Lens[GlobalModel, SceneModel] =
-    Lens[GlobalModel, SceneModel](
-      getter = _.snakeSceneModel,
-      setter = (gameModel, sceneModel) => gameModel.copy(snakeSceneModel = sceneModel)
-    )
-}
-
-object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
-  type SceneModel     = GameSceneModel
+object GameScene extends Scene[StartUpData, GlobalModel, ViewModel] {
+  type SceneModel     = SnakeModel
   type SceneViewModel = Unit
 
   val name: SceneName                                = SceneName("game")
-  val modelLens: Lens[GlobalModel, SceneModel]       = GameSceneModel.modelLens
+  val modelLens: Lens[GlobalModel, SceneModel]       = SnakeModel.modelLens
   val viewModelLens: Lens[ViewModel, SceneViewModel] = Lens.fixed(())
   val eventFilters: EventFilters                     = EventFilters.Default
   val subSystems: Set[SubSystem]                     = Set.empty
 
   def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] =
-    if (model.gameOver) updateModelGameOver(context, model)
-    else updateModelGameRunning(context, model)
-
-  def updateModelGameOver(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
-    case FrameTick if context.gameTime.running > model.lastUpdated + Settings.delayGameOver =>
-      Outcome
-        .pure(model)
-        .addGlobalEvents(SceneEvent.JumpTo(GameOverScene.name))
-    case _ => Outcome.pure(model)
-  }
+    updateModelGameRunning(context, model)
 
   def updateModelGameRunning(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
     case KeyboardEvent.KeyDown(Keys.UP_ARROW)    => model.pipe(turnHead(Up)).pipe(Outcome.pure)
@@ -75,10 +29,14 @@ object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
       model
         .pipe(moveAhead)
         .pipe(handleTarget(context))
-        .pipe(handleWalls)
-        .pipe(handleBody)
         .pipe(_.copy(lastUpdated = context.gameTime.running))
-        .pipe(Outcome.pure)
+        .pipe {
+          case model if gameOver(model) =>
+            Outcome(model)
+              .addGlobalEvents(SceneEvent.JumpTo(GameOverScene.name))
+          case model =>
+            Outcome(model)
+        }
 
     case _ => Outcome(model)
   }
@@ -96,14 +54,10 @@ object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
 
   def handleTarget(context: FrameContext[_])(model: SceneModel): SceneModel =
     if (model.snakeHead == model.target) {
-      // todo: this code does not terminate, if all tiles are filled with snakebody
-      val newTarget = LazyList
-        .continually {
-          Point(context.dice.roll(GameMap.width - 2), context.dice.roll(GameMap.height - 2))
-        }
-        .filter(!model.snakeBody.contains(_))
-        .filter(_ != model.snakeHead)
-        .head
+      val freePositions = GameMap.freePositions(model)
+      val newTarget =
+        if (freePositions.isEmpty) Point(-1, -1)
+        else freePositions(context.dice.rollFromZero(freePositions.length - 1))
       model.copy(
         target = newTarget,
         snakeBodyLength = model.snakeBodyLength + 1,
@@ -113,19 +67,8 @@ object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
       model
     }
 
-  def handleWalls(model: SceneModel): SceneModel =
-    if (GameMap.wallPositions.contains(model.snakeHead)) {
-      model.copy(gameOver = true)
-    } else {
-      model
-    }
-
-  def handleBody(model: SceneModel): SceneModel =
-    if (model.snakeBody.contains(model.snakeHead)) {
-      model.copy(gameOver = true)
-    } else {
-      model
-    }
+  def gameOver(model: SceneModel): Boolean =
+    GameMap.wallPositions.contains(model.snakeHead) || model.snakeBody.contains(model.snakeHead)
 
   def updateViewModel(
       context: FrameContext[StartUpData],
@@ -136,9 +79,7 @@ object SnakeScene extends Scene[StartUpData, GlobalModel, ViewModel] {
 
   def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment =
     SceneUpdateFragment.empty
-      .addGameLayerNodes(
-        GameMap.graphics(model): _*
-      )
+      .addGameLayerNodes(GameMap.graphics(model))
       .addGameLayerNodes(
         Text(s"Score: ${model.score}", Settings.viewportWidth, 0, 0, Assets.fontKey).alignRight
       )

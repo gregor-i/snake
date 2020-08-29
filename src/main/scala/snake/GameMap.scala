@@ -6,23 +6,37 @@ object GameMap {
   val width  = 12
   val height = 10
 
-  val wallPositions: Seq[Point] = {
-    val top    = (0 until width).map(Point(_, 0))
-    val bottom = (0 until width).map(Point(_, height - 1))
-    val left   = (1 until height - 1).map(Point(0, _))
-    val right  = (1 until height - 1).map(Point(width - 1, _))
-    top ++ bottom ++ left ++ right
+  val allPositions: List[Point] =
+    (for {
+      x <- 0 until width
+      y <- 0 until height
+    } yield Point(x, y)).toList
+
+  def isWall(point: Point): Boolean =
+    point.x == 0 || point.y == 0 || point.x == width - 1 || point.y == height - 1
+
+  val wallPositions: List[Point] = {
+    allPositions.filter(isWall)
   }
 
-  def graphics(model: GameSceneModel): Seq[Graphic] = {
+  def freePositions(model: SnakeModel): List[Point] =
+    allPositions
+      .filter(!isWall(_))
+      .filter(!model.snakeBody.contains(_))
+      .filter(_ != model.snakeHead)
+
+  def graphics(model: SnakeModel): List[Graphic] = {
     val walls = wallPositions.map(p => Assets.wall.moveBy(p * Settings.textureSize))
 
     val snakeHead = Assets.head(model.snakeDirection).moveBy(model.snakeHead * Settings.textureSize)
 
-    val snakeBody = model.snakeBody.toSeq.map(p => Assets.body.moveBy(p * Settings.textureSize))
+    val snakeBody = model.snakeBody.map(p => Assets.body.moveBy(p * Settings.textureSize))
 
     val target = Assets.target.moveBy(model.target * Settings.textureSize)
 
-    target +: snakeHead +: (walls ++ snakeBody)
+    target :: snakeHead :: (walls ++ snakeBody)
   }
+
+  def background(model: SnakeModel): List[Graphic] =
+    graphics(model).map(_.withAlpha(0.7))
 }
