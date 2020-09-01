@@ -3,9 +3,7 @@ package snake
 import indigo.scenes.{Scene, SceneName}
 import indigo._
 
-case class GlobalModel(
-    snakeSceneModel: SnakeModel
-)
+case class GlobalModel(snakeModel: SnakeModel)
 
 case class BootData()
 case class StartUpData()
@@ -37,7 +35,7 @@ object Snake extends IndigoGame[BootData, StartUpData, GlobalModel, ViewModel] {
     Startup.Success(StartUpData())
 
   def initialModel(startupData: StartUpData): GlobalModel =
-    GlobalModel(snakeSceneModel = SnakeModel.initial)
+    GlobalModel(snakeModel = SnakeModel.initial)
 
   def initialViewModel(startupData: StartUpData, model: GlobalModel): ViewModel =
     ViewModel()
