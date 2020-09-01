@@ -10,6 +10,7 @@ case class SnakeModel(
     snakeBodyLength: Int,
     target: Point,
     score: Int,
+    turnQueue: TurnQueue,
     lastUpdated: Seconds
 )
 
@@ -25,6 +26,7 @@ object SnakeModel {
       snakeBody = List.tabulate(startLength)(i => startPoint - (startDirection.delta * (i + 1))),
       snakeBodyLength = startLength,
       score = 0,
+      turnQueue = NoTurnYet,
       lastUpdated = Seconds.zero
     )
   }
@@ -35,3 +37,8 @@ object SnakeModel {
       setter = (gameModel, sceneModel) => gameModel.copy(snakeSceneModel = sceneModel)
     )
 }
+
+sealed trait TurnQueue
+case object NoTurnYet                         extends TurnQueue
+case object TurnHappened                      extends TurnQueue
+case class TurnEnqueued(direction: Direction) extends TurnQueue
