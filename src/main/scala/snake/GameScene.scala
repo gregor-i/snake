@@ -3,6 +3,7 @@ package snake
 import indigo._
 import indigo.scenes.{Lens, Scene, SceneEvent, SceneName}
 import indigo.shared.constants.Keys
+import org.scalajs.dom
 
 import scala.util.chaining._
 
@@ -24,6 +25,21 @@ object GameScene extends Scene[StartUpData, GlobalModel, ViewModel] {
     case KeyboardEvent.KeyDown(Keys.DOWN_ARROW)  => model.pipe(turnHead(Down)).pipe(Outcome.pure)
     case KeyboardEvent.KeyDown(Keys.LEFT_ARROW)  => model.pipe(turnHead(Left)).pipe(Outcome.pure)
     case KeyboardEvent.KeyDown(Keys.RIGHT_ARROW) => model.pipe(turnHead(Right)).pipe(Outcome.pure)
+
+    case MouseEvent.Click(x, y) =>
+      val canvas = dom.document.querySelector("#indigo-container canvas")
+      val bounds = canvas.getBoundingClientRect()
+      val px     = (x - bounds.left) / bounds.width
+      val py     = (y - bounds.top) / bounds.height
+
+      val direction = (px > py, px > 1d - py) match {
+        case (true, true)   => Right
+        case (true, false)  => Up
+        case (false, true)  => Down
+        case (false, false) => Left
+      }
+
+      model.pipe(turnHead(direction)).pipe(Outcome.pure)
 
     case FrameTick if context.gameTime.running > model.lastUpdated + Settings.tickDelay =>
       model

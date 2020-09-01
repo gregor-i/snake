@@ -18,7 +18,7 @@ object GreetingScene extends Scene[StartUpData, GlobalModel, ViewModel] {
   val subSystems: Set[SubSystem]                     = Set.empty
 
   def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
-    case KeyboardEvent.KeyDown(Keys.ENTER) =>
+    case KeyboardEvent.KeyDown(Keys.ENTER) | MouseEvent.Click(_, _) =>
       Outcome
         .pure(model)
         .addGlobalEvents(SceneEvent.JumpTo(GameScene.name))

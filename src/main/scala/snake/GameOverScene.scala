@@ -3,7 +3,7 @@ package snake
 import indigo.{KeyboardEvent, SceneGraphNode, Text}
 import indigo.scenes.{Lens, Scene, SceneEvent, SceneName}
 import indigo.shared.constants.Keys
-import indigo.shared.events.{EventFilters, GlobalEvent}
+import indigo.shared.events.{EventFilters, GlobalEvent, MouseEvent}
 import indigo.shared.scenegraph.SceneUpdateFragment
 import indigo.shared.subsystems.SubSystem
 import indigo.shared.{FrameContext, Outcome}
@@ -19,7 +19,7 @@ object GameOverScene extends Scene[StartUpData, GlobalModel, ViewModel] {
   val subSystems: Set[SubSystem]                     = Set.empty
 
   def updateModel(context: FrameContext[StartUpData], model: SceneModel): GlobalEvent => Outcome[SceneModel] = {
-    case KeyboardEvent.KeyDown(Keys.ENTER) =>
+    case KeyboardEvent.KeyDown(Keys.ENTER) | MouseEvent.Click(_, _) =>
       Outcome
         .pure(SnakeModel.initial)
         .addGlobalEvents(SceneEvent.JumpTo(GameScene.name))
