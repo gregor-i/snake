@@ -12,21 +12,34 @@ object Assets {
   val fontKey              = FontKey("font")
 
   val assets = Seq(
-    AssetType.Image(snakeTileSet, AssetPath("snake.png")),
+    AssetType.Image(snakeTileSet, AssetPath("snake.svg")),
     AssetType.Image(fontTileSet, AssetPath("boxy_font_small.png"))
   )
 
-  val wall      = crop(1, 2, 3)
-  val target    = crop(6, 0, 3)
-  val headUp    = crop(1, 0, 1)
-  val headLeft  = crop(2, 0, 1)
-  val headDown  = crop(3, 0, 1)
-  val headRight = crop(4, 0, 1)
-  val body      = crop(5, 0, 2)
+  val body      = crop(0, 0, 2)
+  val headLeft  = crop(1, 0, 1)
+  val headUp    = crop(2, 0, 1)
+  val headRight = crop(3, 0, 1)
+  val headDown  = crop(4, 0, 1)
+  val target    = crop(5, 0, 3)
+
+  val wallHorizontal    = crop(0, 1, 3)
+  val wallVertical      = crop(1, 1, 3)
+  val cornerTopLeft     = crop(2, 1, 3)
+  val cornerTopRight    = crop(3, 1, 3)
+  val cornerBottomRight = crop(4, 1, 3)
+  val cornerBottomLeft  = crop(5, 1, 3)
 
   private def crop(x: Int, y: Int, depth: Int): Graphic =
     Graphic(tileRect, depth, Material.Textured(snakeTileSet))
-      .withCrop(tileRect.moveBy(Point(x, y) * Settings.textureCroppingSize))
+      .withCrop(
+        Rectangle(
+          x * Settings.textureCroppingSize,
+          y * Settings.textureCroppingSize,
+          Settings.textureCroppingSize,
+          Settings.textureCroppingSize
+        )
+      )
       .scaleBy(Settings.textureScale, Settings.textureScale)
 
   def head(direction: Direction): Graphic =

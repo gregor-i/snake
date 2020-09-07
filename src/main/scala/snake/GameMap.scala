@@ -26,17 +26,32 @@ object GameMap {
       .filter(_ != model.snakeHead)
 
   def graphics(model: SnakeModel): List[Graphic] = {
-    val walls = wallPositions.map(p => Assets.wall.moveBy(p * Settings.textureSize))
+    def at(graphic: Graphic, point: Point): Graphic =
+      graphic.moveBy(point * Settings.textureSize)
 
-    val snakeHead = Assets.head(model.snakeDirection).moveBy(model.snakeHead * Settings.textureSize)
+    val walls = List(
+      List(
+        at(Assets.cornerTopLeft, Point(0, 0)),
+        at(Assets.cornerTopRight, Point(GameMap.width - 1, 0)),
+        at(Assets.cornerBottomRight, Point(GameMap.width - 1, GameMap.height - 1)),
+        at(Assets.cornerBottomLeft, Point(0, GameMap.height - 1))
+      ),
+      (for (x <- 1 until GameMap.width - 1) yield at(Assets.wallHorizontal, Point(x, 0))).toList,
+      (for (x <- 1 until GameMap.width - 1) yield at(Assets.wallHorizontal, Point(x, GameMap.height - 1))).toList,
+      (for (y <- 1 until GameMap.height - 1) yield at(Assets.wallVertical, Point(0, y))).toList,
+      (for (y <- 1 until GameMap.height - 1) yield at(Assets.wallVertical, Point(GameMap.width - 1, y))).toList
+    ).flatten
 
-    val snakeBody = model.snakeBody.map(p => Assets.body.moveBy(p * Settings.textureSize))
+    val snakeHead = at(Assets.head(model.snakeDirection), model.snakeHead)
 
-    val target = Assets.target.moveBy(model.target * Settings.textureSize)
+    val snakeBody = model.snakeBody.map(at(Assets.body, _))
+
+    val target = at(Assets.target, model.target)
 
     target :: snakeHead :: (walls ++ snakeBody)
   }
 
   def background(model: SnakeModel): List[Graphic] =
-    graphics(model).map(_.withAlpha(0.7))
+    graphics(model)
+      .map(_.withAlpha(0.7))
 }

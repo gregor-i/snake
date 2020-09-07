@@ -4,7 +4,7 @@ import indigo.shared.time.Seconds
 
 object Settings {
   val textureScale        = 3
-  val textureCroppingSize = 8
+  val textureCroppingSize = 24
   val textureSize         = textureCroppingSize * textureScale
 
   val scorePerTarget = 100

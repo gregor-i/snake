@@ -3,7 +3,8 @@
     "http-server": "^0.12.3",
     "image-clipper": "^0.4.4",
     "nodemon": "^2.0.4",
-    "npm-run-all": "^4.1.5"
+    "npm-run-all": "^4.1.5",
+    "svgo": "^1.3.2"
   },
   "scripts": {
     "develop": "npm run mkdir && run-p server watch",
@@ -12,9 +13,11 @@
     "build": "npm run mkdir && run-p build-*",
     "build-static": "cp src/main/static/* build/.",
     "build-js": "sbt 'set scalaJSStage := org.scalajs.sbtplugin.Stage.FullOpt; compile'",
+    "build-svg": "svgo -f src/main/svg -o build",
     "watch": "run-p watch-*",
     "watch-static": "nodemon --exec 'npm run build-static' --watch src/main/static -e '*'",
-    "watch-js": "sbt ~compile"
+    "watch-js": "sbt ~compile",
+    "watch-svg": "nodemon --exec 'npm run build-svg' --watch src/main/svg -e svg"
   },
   "dependencies": {}
 }

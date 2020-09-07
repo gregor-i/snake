@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="168"
+     height="48"
+     viewBox="0 0 7 2"
+     fill="gray">
+    <rect width="100%" height="100%" fill="#000"/>
+
+    <defs>
+        <g id="def-body">
+            <circle cx="0.5" cy="0.5" r="0.5" fill="#008751"/>
+            <circle cx="0.5" cy="0.5" r="0.4" fill="#00e436"/>
+            <g id="yellow-dots">
+                <circle cx="0.45" cy="0.35" r="0.05" fill="#ffec27"/>
+                <circle cx="0.35" cy="0.45" r="0.05" fill="#ffec27"/>
+                <circle cx="0.35" cy="0.65" r="0.05" fill="#ffec27"/>
+                <circle cx="0.45" cy="0.55" r="0.05" fill="#ffec27"/>
+                <circle cx="0.55" cy="0.45" r="0.05" fill="#ffec27"/>
+                <circle cx="0.55" cy="0.65" r="0.05" fill="#ffec27"/>
+                <circle cx="0.65" cy="0.35" r="0.05" fill="#ffec27"/>
+                <circle cx="0.65" cy="0.55" r="0.05" fill="#ffec27"/>
+            </g>
+        </g>
+
+        <g id="def-eyes">
+            <rect x="0.3" y="0.3" width="0.1" height="0.1" fill="#ff004d" />
+            <rect x="0.4" y="0.3" width="0.1" height="0.1" fill="#7e2553" />
+            <rect x="0.3" y="0.6" width="0.1" height="0.1" fill="#ff004d" />
+            <rect x="0.4" y="0.6" width="0.1" height="0.1" fill="#7e2553" />
+        </g>
+
+        <g id="def-wall-horizontal">
+            <rect x="0" y="0.3" width="1" height="0.1" fill="gray" />
+            <rect x="0" y="0.6" width="1" height="0.1" fill="gray" />
+        </g>
+
+        <g id="def-corner-top-left">
+            <rect x="0.3" y="0.3" width="0.7" height="0.1" fill="gray" />
+            <rect x="0.3" y="0.3" width="0.1" height="0.7" fill="gray" />
+
+            <rect x="0.6" y="0.6" width="0.4" height="0.1" fill="gray" />
+            <rect x="0.6" y="0.6" width="0.1" height="0.4" fill="gray" />
+        </g>
+    </defs>
+
+    <g id="body">
+        <use x="0" y="0" href="#def-body"/>
+    </g>
+
+    <g id="head-left" transform="translate(1, 0)">
+        <use x="0" y="0" href="#def-body"/>
+        <use x="0" y="0" href="#def-eyes"/>
+    </g>
+
+    <g id="head-up" transform="translate(2, 0)">
+        <use x="0" y="0" href="#def-body"/>
+        <use x="0" y="0" href="#def-eyes" transform="translate(0.5 0.5) rotate(90) translate(-0.5 -0.5)"/>
+    </g>
+
+    <g id="head-right" transform="translate(3, 0)">
+        <use x="0" y="0" href="#def-body"/>
+        <use x="0" y="0" href="#def-eyes" transform="translate(0.5 0.5) rotate(180) translate(-0.5 -0.5)"/>
+    </g>
+
+    <g id="head-down" transform="translate(4, 0)">
+        <use x="0" y="0" href="#def-body"/>
+        <use x="0" y="0" href="#def-eyes" transform="translate(0.5 0.5) rotate(270) translate(-0.5 -0.5)"/>
+    </g>
+
+    <g id="target" transform="translate(5,0)">
+        <rect x="0.2" y="0.2" width="0.1" height="0.1" fill="white" />
+        <rect x="0.2" y="0.3" width="0.1" height="0.1" fill="white" />
+        <rect x="0.3" y="0.2" width="0.1" height="0.1" fill="white" />
+
+        <rect x="0.2" y="0.7" width="0.1" height="0.1" fill="white" />
+        <rect x="0.2" y="0.6" width="0.1" height="0.1" fill="white" />
+        <rect x="0.3" y="0.7" width="0.1" height="0.1" fill="white" />
+
+        <rect x="0.7" y="0.2" width="0.1" height="0.1" fill="white" />
+        <rect x="0.7" y="0.3" width="0.1" height="0.1" fill="white" />
+        <rect x="0.6" y="0.2" width="0.1" height="0.1" fill="white" />
+
+        <rect x="0.7" y="0.7" width="0.1" height="0.1" fill="white" />
+        <rect x="0.7" y="0.6" width="0.1" height="0.1" fill="white" />
+        <rect x="0.6" y="0.7" width="0.1" height="0.1" fill="white" />
+    </g>
+
+    <g id="wall-horizontal" transform="translate(0,1)">
+        <use x="0" y="0" href="#def-wall-horizontal"/>
+    </g>
+
+    <g id="wall-vertical" transform="translate(1,1)">
+        <use x="0" y="0" href="#def-wall-horizontal" transform="translate(0.5 0.5) rotate(90) translate(-0.5 -0.5)"/>
+    </g>
+
+    <g id="corner-top-left" transform="translate(2,1)">
+        <use x="0" y="0" href="#def-corner-top-left"/>
+    </g>
+
+    <g id="corner-top-right" transform="translate(3,1)">
+        <use x="0" y="0" href="#def-corner-top-left" transform="translate(0.5 0.5) rotate(90) translate(-0.5 -0.5)"/>
+    </g>
+    <g id="corner-bottom-right" transform="translate(4,1)">
+        <use x="0" y="0" href="#def-corner-top-left" transform="translate(0.5 0.5) rotate(180) translate(-0.5 -0.5)"/>
+    </g>
+    <g id="corner-bottom-left" transform="translate(5,1)">
+        <use x="0" y="0" href="#def-corner-top-left" transform="translate(0.5 0.5) rotate(270) translate(-0.5 -0.5)"/>
+    </g>
+</svg>
