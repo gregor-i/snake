@@ -40,9 +40,9 @@ case class SnakeModel(
       case _                       => setTurnQueue(NoTurnYet)
     }
 
-  def handleTarget(context: FrameContext[_]): SnakeModel =
+  def handleTarget(context: FrameContext[StartUpData]): SnakeModel =
     if (snakeHead == target) {
-      val freePositions = GameMap.freePositions(this)
+      val freePositions = GameMap.freePositions(this)(context.startUpData)
       val newTarget =
         if (freePositions.isEmpty) Point(-1, -1)
         else freePositions(context.dice.rollFromZero(freePositions.length - 1))
@@ -55,8 +55,8 @@ case class SnakeModel(
       this
     }
 
-  def gameOver: Boolean =
-    GameMap.wallPositions.contains(snakeHead) || snakeBody.contains(snakeHead)
+  def gameOver(context: FrameContext[StartUpData]): Boolean =
+    GameMap.wallPositions(context.startUpData).contains(snakeHead) || snakeBody.contains(snakeHead)
 }
 
 object SnakeModel {

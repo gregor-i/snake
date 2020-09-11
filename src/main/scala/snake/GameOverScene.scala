@@ -34,13 +34,13 @@ object GameOverScene extends Scene[StartUpData, GlobalModel, ViewModel] {
     _ => Outcome.pure(viewModel)
 
   def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment = {
-    val centerX = Settings.viewportWidth / 2
+    val centerX = Settings.textureSize * context.startUpData.width / 2
     SceneUpdateFragment.empty
-      .addUiLayerNodes(GameMap.background(model))
+      .addUiLayerNodes(GameMap.background(model)(context.startUpData))
       .addUiLayerNodes(
         Text("Game over", centerX, Settings.textureSize * 2 + 6, 1, Assets.fontKey).alignCenter,
         Text(s"final score: ${model.score}", centerX, Settings.textureSize * 5 + 6, 1, Assets.fontKey).alignCenter,
-        Text("press Enter to restart", centerX, Settings.textureSize * (GameMap.height - 2) + 6, 1, Assets.fontKey).alignCenter
+        Text("press Enter to restart", centerX, Settings.textureSize * (context.startUpData.height - 2) + 6, 1, Assets.fontKey).alignCenter
       )
   }
 

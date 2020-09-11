@@ -9,7 +9,9 @@ object Settings {
 
   val scorePerTarget   = 100
   val defaultTickDelay = Seconds(0.25d)
+  val defaultWidth     = 12
+  val defaultHeight    = 10
 
-  val viewportWidth  = textureSize * GameMap.width
-  val viewportHeight = textureSize * GameMap.height
+  def viewportWidth(startUpData: StartUpData)  = textureSize * startUpData.width
+  def viewportHeight(startUpData: StartUpData) = textureSize * startUpData.height
 }

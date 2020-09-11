@@ -47,7 +47,7 @@ object GameScene extends Scene[StartUpData, GlobalModel, ViewModel] {
         .setLastUpdated(context.gameTime.running)
         .setTurnQueue(NoTurnYet)
         .pipe {
-          case model if model.gameOver =>
+          case model if model.gameOver(context) =>
             Outcome(model)
               .addGlobalEvents(SceneEvent.JumpTo(GameOverScene.name))
           case model =>
@@ -66,9 +66,9 @@ object GameScene extends Scene[StartUpData, GlobalModel, ViewModel] {
 
   def present(context: FrameContext[StartUpData], model: SceneModel, viewModel: SceneViewModel): SceneUpdateFragment =
     SceneUpdateFragment.empty
-      .addGameLayerNodes(GameMap.graphics(model))
+      .addGameLayerNodes(GameMap.graphics(model)(context.startUpData))
       .addGameLayerNodes(
-        Text(s"Score: ${model.score}", Settings.viewportWidth, 0, 0, Assets.fontKey).alignRight
+        Text(s"Score: ${model.score}", context.startUpData.width * Settings.textureSize, 0, 0, Assets.fontKey).alignRight
       )
 
 }
