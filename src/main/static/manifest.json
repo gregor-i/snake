@@ -1,0 +1,15 @@
+{
+  "short_name": "Snake",
+  "name": "Snake",
+  "icons": [
+    {
+      "src": "appicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "256x256"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "scope":  "/"
+}
