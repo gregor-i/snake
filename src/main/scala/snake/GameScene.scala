@@ -41,7 +41,7 @@ object GameScene extends Scene[StartUpData, GlobalModel, ViewModel] {
 
       model.turnHeadOrEnqueue(direction).pipe(Outcome.pure)
 
-    case FrameTick if context.gameTime.running > model.lastUpdated + Settings.tickDelay =>
+    case FrameTick if context.gameTime.running > model.lastUpdated + context.startUpData.tickDelay =>
       model.moveAhead.handleQueue
         .handleTarget(context)
         .setLastUpdated(context.gameTime.running)
